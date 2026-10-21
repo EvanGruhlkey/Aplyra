@@ -1,0 +1,13 @@
+primary_region = "dfw"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[[mounts]]
+  source = "data"
+  destination = "/workspace"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 2
+  memory_mb = 2048
