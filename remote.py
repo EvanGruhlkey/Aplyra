@@ -45,7 +45,7 @@ def deploy_commands(app: str, region: str, app_exists: bool, volume_exists: bool
 
 
 def fly(args: list[str], *, input_text: str | None = None, check: bool = True) -> subprocess.CompletedProcess:
-    result = subprocess.run([fly_executable(), *args], input=input_text, text=True, capture_output=True, check=False)
+    result = subprocess.run([fly_executable(), *args], input=input_text, text=True, encoding="utf-8", errors="replace", capture_output=True, check=False)
     if check and result.returncode:
         raise RuntimeError(f"Fly command failed: {' '.join(args[:2])}")
     return result
