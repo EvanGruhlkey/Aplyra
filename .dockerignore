@@ -1,0 +1,11 @@
+.git
+.venv
+.env
+profile.json
+resume.pdf
+runs
+mock_submissions
+workspace
+__pycache__
+.pytest_cache
+tests
