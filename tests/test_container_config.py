@@ -12,3 +12,6 @@ def test_private_container_contract():
     assert 'host="::"' in entrypoint
     assert '"127.0.0.1", 8000' in entrypoint
     assert "APLYRA_CONTROL_TOKEN" in entrypoint
+    assert "ollama serve" in entrypoint
+    assert '["ollama", "pull", model]' in entrypoint
+    assert "OLLAMA_MODELS=/workspace/ollama" in dockerfile
