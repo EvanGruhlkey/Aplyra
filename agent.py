@@ -62,11 +62,11 @@ def build_task(url: str, profile: dict, resume_path: Path) -> str:
     )
 
 
-async def apply(url: str, profile: dict, resume_path: Path, output_dir: Path) -> dict:
+async def apply(url: str, profile: dict, resume_path: Path, output_dir: Path, headless: bool = False) -> dict:
     from browser_use import Agent, Browser
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    browser = Browser(headless=False, keep_alive=True)
+    browser = Browser(headless=headless, keep_alive=True)
     agent = Agent(
         task=build_task(url, profile, resume_path),
         llm=make_llm(),
@@ -114,6 +114,14 @@ async def apply(url: str, profile: dict, resume_path: Path, output_dir: Path) ->
     return result
 
 
+def run_application(url: str, profile_path: Path, resume_path: Path, output_dir: Path, authorized_url: str | None = None, headless: bool = False) -> dict:
+    if not is_mock_url(url) and authorized_url != url:
+        raise ValueError("Real-site submission requires authorization for the exact URL")
+    require_submission_authorization(url, authorized_url == url)
+    profile = load_profile(profile_path, resume_path)
+    return asyncio.run(apply(url, profile, resume_path, output_dir, headless=headless))
+
+
 def main():
     parser = argparse.ArgumentParser(description="Apply to a job using Browser Use")
     parser.add_argument("--url", required=True)
@@ -123,10 +131,8 @@ def main():
     args = parser.parse_args()
     load_dotenv()
     try:
-        require_submission_authorization(args.url, args.authorize_submit)
-        profile = load_profile(args.profile, args.resume)
         output_dir = Path("runs") / datetime.now().strftime("%Y%m%d-%H%M%S")
-        result = asyncio.run(apply(args.url, profile, args.resume, output_dir))
+        result = run_application(args.url, args.profile, args.resume, output_dir, args.url if args.authorize_submit else None)
         print(json.dumps({"status": result["status"], "application_id": result.get("application_id"), "output_dir": str(output_dir), "error": result.get("error")}, indent=2))
         raise SystemExit(0 if result["status"] == "confirmed" else 1)
     except (ValueError, FileNotFoundError, json.JSONDecodeError) as exc:
