@@ -1,0 +1,8 @@
+.venv/
+.env
+profile.json
+resume.pdf
+runs/
+mock_submissions/
+__pycache__/
+.pytest_cache/
