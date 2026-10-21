@@ -47,3 +47,22 @@ For a real application URL, you must add `--authorize-submit`. This flag authori
 ```
 
 These automated tests cover the mock form, PDF upload storage, profile validation, and the real-site authorization gate. A complete browser run also needs Chromium, a running Ollama service with `qwen3:8b` (or an API key), and a filled profile plus resume.
+
+## One-user remote worker
+
+The remote prototype runs Chromium and the mock employer inside one Fly Machine. `/workspace` is a persistent volume for the private profile, resume, browser session, and run logs. The control API has no public HTTP service; `remote.py` connects through a temporary Fly private-network tunnel and requires a bearer token.
+
+Install [flyctl](https://fly.io/docs/flyctl/install/) and sign in with `fly auth login`. In `.env`, set `FLY_APP_NAME` to a unique app name and `APLYRA_CONTROL_TOKEN` to a long random value. Select an API model with `LLM_PROVIDER=openai`, `OPENAI_MODEL`, and `OPENAI_API_KEY`, or set `OLLAMA_HOST` to an Ollama server reachable from Fly. The remote Machine does not run Ollama itself.
+
+```powershell
+.venv\Scripts\python.exe remote.py deploy
+.venv\Scripts\python.exe remote.py setup --profile profile.json --resume resume.pdf
+.venv\Scripts\python.exe remote.py apply --url http://localhost:8000/apply
+.venv\Scripts\python.exe remote.py status RUN_ID
+```
+
+The `apply` command returns a run ID immediately. Repeat `status` until it reports `confirmed`, `unconfirmed`, or `error`. A stopped Machine leaves a run marked `interrupted` on its next start. For a real site, add `--authorize-url` with **the exact same URL** passed to `--url`. The browser profile persists on the volume, so account sessions can be reused after login. The worker runs one application at a time. Run logs and screenshots stay on the private volume.
+
+`python remote.py tunnel` keeps a tunnel open at `http://127.0.0.1:18080` for diagnostics. The CLI opens and closes its own tunnel for `setup`, `apply`, and `status`.
+
+The remote worker is the first infrastructure step. Job discovery, deduplication, Gmail monitoring, and the CLI question inbox are not implemented yet. Docker and Fly deployment must be exercised where Docker and Fly credentials are available.

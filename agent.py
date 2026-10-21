@@ -62,11 +62,15 @@ def build_task(url: str, profile: dict, resume_path: Path) -> str:
     )
 
 
-async def apply(url: str, profile: dict, resume_path: Path, output_dir: Path, headless: bool = False) -> dict:
+async def apply(url: str, profile: dict, resume_path: Path, output_dir: Path, headless: bool = False, browser_data_dir: Path | None = None) -> dict:
     from browser_use import Agent, Browser
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    browser = Browser(headless=headless, keep_alive=True)
+    browser_options = {"headless": headless, "keep_alive": True}
+    if browser_data_dir:
+        browser_data_dir.mkdir(parents=True, exist_ok=True)
+        browser_options["user_data_dir"] = browser_data_dir
+    browser = Browser(**browser_options)
     agent = Agent(
         task=build_task(url, profile, resume_path),
         llm=make_llm(),
@@ -114,12 +118,12 @@ async def apply(url: str, profile: dict, resume_path: Path, output_dir: Path, he
     return result
 
 
-def run_application(url: str, profile_path: Path, resume_path: Path, output_dir: Path, authorized_url: str | None = None, headless: bool = False) -> dict:
+def run_application(url: str, profile_path: Path, resume_path: Path, output_dir: Path, authorized_url: str | None = None, headless: bool = False, browser_data_dir: Path | None = None) -> dict:
     if not is_mock_url(url) and authorized_url != url:
         raise ValueError("Real-site submission requires authorization for the exact URL")
     require_submission_authorization(url, authorized_url == url)
     profile = load_profile(profile_path, resume_path)
-    return asyncio.run(apply(url, profile, resume_path, output_dir, headless=headless))
+    return asyncio.run(apply(url, profile, resume_path, output_dir, headless=headless, browser_data_dir=browser_data_dir))
 
 
 def main():

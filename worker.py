@@ -113,7 +113,7 @@ def create_app(workspace: Path, control_token: str, runner=run_application) -> F
 
         def work():
             try:
-                result = runner(url=body.url, profile_path=workspace / "profile.json", resume_path=workspace / "resume.pdf", output_dir=run_dir, authorized_url=body.authorized_url, headless=True)
+                result = runner(url=body.url, profile_path=workspace / "profile.json", resume_path=workspace / "resume.pdf", output_dir=run_dir, authorized_url=body.authorized_url, headless=True, browser_data_dir=workspace / "browser")
                 state.update(result)
             except Exception as exc:
                 state.update(status="error", error=f"{type(exc).__name__}: {exc}")
