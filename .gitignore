@@ -6,3 +6,4 @@ runs/
 mock_submissions/
 __pycache__/
 .pytest_cache/
+workspace/
