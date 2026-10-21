@@ -52,7 +52,7 @@ These automated tests cover the mock form, PDF upload storage, profile validatio
 
 The remote prototype runs Chromium and the mock employer inside one Fly Machine. `/workspace` is a persistent volume for the private profile, resume, browser session, and run logs. The control API has no public HTTP service; `remote.py` connects through a temporary Fly private-network tunnel and requires a bearer token.
 
-Install [flyctl](https://fly.io/docs/flyctl/install/) and sign in with `fly auth login`. In `.env`, set `FLY_APP_NAME` to a unique app name and `APLYRA_CONTROL_TOKEN` to a long random value. Select an API model with `LLM_PROVIDER=openai`, `OPENAI_MODEL`, and `OPENAI_API_KEY`, or set `OLLAMA_HOST` to an Ollama server reachable from Fly. The remote Machine does not run Ollama itself.
+Install [flyctl](https://fly.io/docs/flyctl/install/) and sign in with `flyctl auth login`. In `.env`, set `FLY_APP_NAME` to a unique app name and `APLYRA_CONTROL_TOKEN` to a long random value. By default, the remote Machine runs Ollama with Qwen3-4B on its own CPU; the model is downloaded to the persistent volume at first startup. Your computer can be turned off after setup. For API inference instead, set `LLM_PROVIDER=openai`, `OPENAI_MODEL`, and `OPENAI_API_KEY` before deployment.
 
 ```powershell
 .venv\Scripts\python.exe remote.py deploy
@@ -62,6 +62,8 @@ Install [flyctl](https://fly.io/docs/flyctl/install/) and sign in with `fly auth
 ```
 
 The `apply` command returns a run ID immediately. Repeat `status` until it reports `confirmed`, `unconfirmed`, or `error`. A stopped Machine leaves a run marked `interrupted` on its next start. For a real site, add `--authorize-url` with **the exact same URL** passed to `--url`. The browser profile persists on the volume, so account sessions can be reused after login. The worker runs one application at a time. Run logs and screenshots stay on the private volume.
+
+The Ollama configuration in `fly.toml` requests a continuously running 4-shared-CPU, 8 GB Machine and an 8 GB volume. Fly bills for both resources; check its current pricing before deploying. The first startup may take several minutes while Qwen3-4B downloads.
 
 `python remote.py tunnel` keeps a tunnel open at `http://127.0.0.1:18080` for diagnostics. The CLI opens and closes its own tunnel for `setup`, `apply`, and `status`.
 

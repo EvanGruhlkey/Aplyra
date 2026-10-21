@@ -39,8 +39,8 @@ def deploy_commands(app: str, region: str, app_exists: bool, volume_exists: bool
     if not app_exists:
         commands.append(["apps", "create", app])
     if not volume_exists:
-        commands.append(["volumes", "create", "data", "--size", "3", "--region", region, "--app", app, "--yes"])
-    commands.append(["deploy", "--app", app, "--ha=false"])
+        commands.append(["volumes", "create", "data", "--size", "8", "--region", region, "--app", app, "--yes"])
+    commands.append(["deploy", "--app", app, "--remote-only", "--ha=false"])
     return commands
 
 
@@ -70,17 +70,18 @@ def deploy(app: str) -> None:
     region = tomllib.loads(Path("fly.toml").read_text(encoding="utf-8"))["primary_region"]
     if not re.fullmatch(r"[a-z]{3}", region):
         raise ValueError("primary_region in fly.toml must be a three-letter Fly region")
-    provider = os.getenv("LLM_PROVIDER", "openai").lower()
+    provider = os.getenv("LLM_PROVIDER", "ollama").lower()
     if provider == "openai" and not os.getenv("OPENAI_API_KEY"):
         raise ValueError("Set OPENAI_API_KEY for the remote worker")
-    if provider == "ollama" and not os.getenv("OLLAMA_HOST"):
-        raise ValueError("Set OLLAMA_HOST to a remote reachable Ollama server")
     if provider not in {"openai", "ollama"}:
         raise ValueError("LLM_PROVIDER must be openai or ollama")
     names = ["APLYRA_CONTROL_TOKEN", "LLM_PROVIDER", "OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_BASE_URL", "OLLAMA_HOST", "OLLAMA_MODEL"]
     values = {name: os.getenv(name, "") for name in names}
     values["APLYRA_CONTROL_TOKEN"] = token
     values["LLM_PROVIDER"] = provider
+    if provider == "ollama":
+        values["OLLAMA_HOST"] = "http://127.0.0.1:11434"
+        values["OLLAMA_MODEL"] = os.getenv("REMOTE_OLLAMA_MODEL", "qwen3:4b")
     if any("\n" in value or "\r" in value for value in values.values()):
         raise ValueError("Secret values must be single-line")
     app_exists = fly(["status", "--app", app], check=False).returncode == 0
@@ -88,13 +89,13 @@ def deploy(app: str) -> None:
         fly(["apps", "create", app])
     volumes = fly(["volumes", "list", "--app", app, "--json"])
     try:
-        volume_exists = any(volume.get("name") == "data" for volume in json.loads(volumes.stdout))
+        volume_exists = any((volume.get("name") or volume.get("Name")) == "data" for volume in json.loads(volumes.stdout))
     except (ValueError, TypeError) as exc:
         raise RuntimeError("Could not read Fly volumes") from exc
     if not volume_exists:
-        fly(["volumes", "create", "data", "--size", "3", "--region", region, "--app", app, "--yes"])
+        fly(["volumes", "create", "data", "--size", "8", "--region", region, "--app", app, "--yes"])
     fly(["secrets", "import", "--app", app], input_text="".join(f"{key}={value}\n" for key, value in values.items() if value))
-    fly(["deploy", "--app", app, "--ha=false"])
+    fly(["deploy", "--app", app, "--remote-only", "--ha=false"])
     print(f"Worker deployed to {app}. Use `python remote.py setup` to upload your files.")
 
 

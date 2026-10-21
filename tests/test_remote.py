@@ -14,7 +14,7 @@ def test_deploy_commands_reuse_existing_resources():
     commands = deploy_commands("aplyra-demo", "dfw", app_exists=True, volume_exists=True)
     assert not any(command[:2] == ["apps", "create"] for command in commands)
     assert not any(command[:2] == ["volumes", "create"] for command in commands)
-    assert commands[-1] == ["deploy", "--app", "aplyra-demo", "--ha=false"]
+    assert commands[-1] == ["deploy", "--app", "aplyra-demo", "--remote-only", "--ha=false"]
     fresh = deploy_commands("aplyra-demo", "dfw", app_exists=False, volume_exists=False)
     assert ["apps", "create", "aplyra-demo"] in fresh
-    assert ["volumes", "create", "data", "--size", "3", "--region", "dfw", "--app", "aplyra-demo", "--yes"] in fresh
+    assert ["volumes", "create", "data", "--size", "8", "--region", "dfw", "--app", "aplyra-demo", "--yes"] in fresh
