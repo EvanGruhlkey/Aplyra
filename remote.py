@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -19,6 +20,13 @@ from agent import is_mock_url, load_profile
 
 LOCAL_PORT = 18080
 BASE_URL = f"http://127.0.0.1:{LOCAL_PORT}"
+
+
+def fly_executable() -> str:
+    executable = os.environ.get("FLYCTL_PATH") or shutil.which("flyctl") or shutil.which("fly")
+    if not executable:
+        raise RuntimeError("Install flyctl or set FLYCTL_PATH to its executable")
+    return executable
 
 
 def require_exact_authorization(url: str, authorized_url: str | None) -> None:
@@ -37,7 +45,7 @@ def deploy_commands(app: str, region: str, app_exists: bool, volume_exists: bool
 
 
 def fly(args: list[str], *, input_text: str | None = None, check: bool = True) -> subprocess.CompletedProcess:
-    result = subprocess.run(["fly", *args], input=input_text, text=True, capture_output=True, check=False)
+    result = subprocess.run([fly_executable(), *args], input=input_text, text=True, capture_output=True, check=False)
     if check and result.returncode:
         raise RuntimeError(f"Fly command failed: {' '.join(args[:2])}")
     return result
@@ -92,7 +100,7 @@ def deploy(app: str) -> None:
 
 @contextmanager
 def tunnel(app: str):
-    process = subprocess.Popen(["fly", "proxy", f"{LOCAL_PORT}:8080", "--app", app], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    process = subprocess.Popen([fly_executable(), "proxy", f"{LOCAL_PORT}:8080", "--app", app], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         for _ in range(60):
             if process.poll() is not None:
