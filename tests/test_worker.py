@@ -36,9 +36,9 @@ def test_worker_auth_uploads_and_run_failure(tmp_path):
 
 
 def test_interrupted_run_is_retained(tmp_path):
-    run_dir = tmp_path / "runs" / "old-run"
+    run_dir = tmp_path / "runs" / "abc123"
     run_dir.mkdir(parents=True)
-    (run_dir / "status.json").write_text(json.dumps({"run_id": "old-run", "status": "running"}))
+    (run_dir / "status.json").write_text(json.dumps({"run_id": "abc123", "status": "running"}))
     client = TestClient(create_app(tmp_path, "secret"))
-    response = client.get("/applications/old-run", headers={"Authorization": "Bearer secret"})
+    response = client.get("/applications/abc123", headers={"Authorization": "Bearer secret"})
     assert response.json()["status"] == "interrupted"
