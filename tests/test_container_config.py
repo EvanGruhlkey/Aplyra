@@ -15,3 +15,4 @@ def test_private_container_contract():
     assert "ollama serve" in entrypoint
     assert '["ollama", "pull", model]' in entrypoint
     assert "OLLAMA_MODELS=/workspace/ollama" in dockerfile
+    assert "COPY --from=ollama /usr/lib/ollama /usr/local/lib/ollama" in dockerfile

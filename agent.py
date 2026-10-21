@@ -83,6 +83,8 @@ async def apply(url: str, profile: dict, resume_path: Path, output_dir: Path, he
         available_file_paths=[str(resume_path.resolve())],
         save_conversation_path=output_dir / "conversation",
         max_failures=2,
+        llm_timeout=240,
+        step_timeout=300,
     )
     result = {"url": url, "started_at": datetime.now(timezone.utc).isoformat(), "status": "error"}
     try:

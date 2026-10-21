@@ -81,7 +81,7 @@ def deploy(app: str) -> None:
     values["LLM_PROVIDER"] = provider
     if provider == "ollama":
         values["OLLAMA_HOST"] = "http://127.0.0.1:11434"
-        values["OLLAMA_MODEL"] = os.getenv("REMOTE_OLLAMA_MODEL", "qwen3:4b")
+        values["OLLAMA_MODEL"] = os.getenv("REMOTE_OLLAMA_MODEL", "qwen3:1.7b")
     if any("\n" in value or "\r" in value for value in values.values()):
         raise ValueError("Secret values must be single-line")
     app_exists = fly(["status", "--app", app], check=False).returncode == 0
@@ -103,7 +103,7 @@ def deploy(app: str) -> None:
 def tunnel(app: str):
     process = subprocess.Popen([fly_executable(), "proxy", f"{LOCAL_PORT}:8080", "--app", app], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
-        for _ in range(60):
+        for _ in range(360):
             if process.poll() is not None:
                 raise RuntimeError("Fly tunnel exited before the worker was ready")
             try:

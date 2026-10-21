@@ -20,7 +20,7 @@ def main():
         raise RuntimeError("APLYRA_CONTROL_TOKEN is required")
     workspace = Path("/workspace")
     if os.getenv("LLM_PROVIDER", "ollama") == "ollama" and os.getenv("OLLAMA_HOST", "127.0.0.1:11434") in {"127.0.0.1:11434", "http://127.0.0.1:11434", "http://localhost:11434"}:
-        model = os.getenv("OLLAMA_MODEL", "qwen3:4b")
+        model = os.getenv("OLLAMA_MODEL", "qwen3:1.7b")
         server = subprocess.Popen(["ollama", "serve"])
         for _ in range(120):
             if server.poll() is not None:

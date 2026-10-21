@@ -63,7 +63,9 @@ Install [flyctl](https://fly.io/docs/flyctl/install/) and sign in with `flyctl a
 
 The `apply` command returns a run ID immediately. Repeat `status` until it reports `confirmed`, `unconfirmed`, or `error`. A stopped Machine leaves a run marked `interrupted` on its next start. For a real site, add `--authorize-url` with **the exact same URL** passed to `--url`. The browser profile persists on the volume, so account sessions can be reused after login. The worker runs one application at a time. Run logs and screenshots stay on the private volume.
 
-The Ollama configuration in `fly.toml` requests a continuously running 4-shared-CPU, 8 GB Machine and an 8 GB volume. Fly bills for both resources; check its current pricing before deploying. The first startup may take several minutes while Qwen3-4B downloads.
+The Ollama configuration in `fly.toml` requests a continuously running 2-shared-CPU, 4 GB Machine and an 8 GB volume. Fly bills for both resources; check its current pricing before deploying. The first startup may take several minutes while Qwen3-1.7B downloads. This smaller model fits accounts limited to 4 GB Machines, though it may need more attempts on complex forms.
+
+Fly trial Machines stop after five minutes until a payment card is added to the Fly account. The local model may need longer than that for a full application, so add a card before running the remote mock test.
 
 `python remote.py tunnel` keeps a tunnel open at `http://127.0.0.1:18080` for diagnostics. The CLI opens and closes its own tunnel for `setup`, `apply`, and `status`.
 
