@@ -15,6 +15,8 @@ def test_worker_auth_uploads_and_run_failure(tmp_path):
     assert client.get("/health").status_code == 200
     assert client.get("/applications/nope").status_code == 401
     headers = {"Authorization": "Bearer secret"}
+    assert client.put("/profile", json=PROFILE).status_code == 401
+    assert client.put("/profile", headers=headers, json={"contact": {}}).status_code == 400
     assert client.put("/profile", headers=headers, json=PROFILE).status_code == 200
     assert client.put("/resume", headers=headers, content=b"%PDF-test").status_code == 200
     assert client.put("/resume", headers=headers, content=b"bad").status_code == 400
@@ -31,3 +33,12 @@ def test_worker_auth_uploads_and_run_failure(tmp_path):
         time.sleep(0.01)
     assert status["status"] == "error"
     assert json.loads((tmp_path / "runs" / run_id / "status.json").read_text())["status"] == "error"
+
+
+def test_interrupted_run_is_retained(tmp_path):
+    run_dir = tmp_path / "runs" / "old-run"
+    run_dir.mkdir(parents=True)
+    (run_dir / "status.json").write_text(json.dumps({"run_id": "old-run", "status": "running"}))
+    client = TestClient(create_app(tmp_path, "secret"))
+    response = client.get("/applications/old-run", headers={"Authorization": "Bearer secret"})
+    assert response.json()["status"] == "interrupted"
