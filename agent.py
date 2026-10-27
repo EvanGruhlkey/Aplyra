@@ -74,6 +74,10 @@ async def apply(url: str, profile: dict, resume_path: Path, output_dir: Path, he
     browser_options = {"headless": headless, "keep_alive": True}
     if browser_data_dir:
         browser_data_dir.mkdir(parents=True, exist_ok=True)
+        for name in ("SingletonLock", "SingletonCookie", "SingletonSocket"):
+            lock = browser_data_dir / name
+            if lock.is_symlink():
+                lock.unlink()
         browser_options["user_data_dir"] = browser_data_dir
     browser = Browser(**browser_options)
     agent = Agent(
