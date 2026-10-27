@@ -42,11 +42,14 @@ def make_llm():
 
     provider = os.getenv("LLM_PROVIDER", "ollama").lower()
     if provider == "ollama":
+        options = {"think": False, "num_ctx": int(os.getenv("OLLAMA_NUM_CTX", "16384"))}
+        if os.getenv("OLLAMA_NUM_GPU") is not None:
+            options["num_gpu"] = int(os.environ["OLLAMA_NUM_GPU"])
         return ChatOllama(
             model=os.getenv("OLLAMA_MODEL", "qwen3:8b"),
             host=os.getenv("OLLAMA_HOST", "http://localhost:11434"),
             timeout=180,
-            ollama_options={"think": False, "num_gpu": int(os.getenv("OLLAMA_NUM_GPU", "0")), "num_ctx": int(os.getenv("OLLAMA_NUM_CTX", "16384"))},
+            ollama_options=options,
         )
     if provider == "openai":
         if not os.getenv("OPENAI_API_KEY"):

@@ -16,10 +16,17 @@ def test_runner_validates_files_before_browser(tmp_path):
 def test_ollama_uses_non_thinking_cpu_mode(monkeypatch):
     monkeypatch.setenv("LLM_PROVIDER", "ollama")
     monkeypatch.setenv("OLLAMA_MODEL", "qwen3:4b")
+    monkeypatch.setenv("OLLAMA_NUM_GPU", "0")
     llm = make_llm()
     assert llm.model == "qwen3:4b"
     assert llm.ollama_options["think"] is False
     assert llm.ollama_options["num_gpu"] == 0
+
+
+def test_ollama_autodetects_gpu_by_default(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "ollama")
+    monkeypatch.delenv("OLLAMA_NUM_GPU", raising=False)
+    assert "num_gpu" not in make_llm().ollama_options
 
 
 def test_self_hosted_browser_model_uses_configured_endpoint(monkeypatch):
