@@ -52,7 +52,19 @@ def make_llm():
         if not os.getenv("OPENAI_API_KEY"):
             raise ValueError("Set OPENAI_API_KEY for the API provider")
         return ChatOpenAI(model=os.getenv("OPENAI_MODEL", "gpt-4.1-mini"), api_key=os.environ["OPENAI_API_KEY"], base_url=os.getenv("OPENAI_BASE_URL") or None)
-    raise ValueError("LLM_PROVIDER must be ollama or openai")
+    if provider == "self_hosted":
+        base_url = os.getenv("SELF_HOSTED_BASE_URL")
+        if not base_url:
+            raise ValueError("Set SELF_HOSTED_BASE_URL for the self-hosted model")
+        return ChatOpenAI(
+            model=os.getenv("SELF_HOSTED_MODEL", "browser-use/bu-30b-a3b-preview"),
+            base_url=base_url,
+            api_key=os.getenv("SELF_HOSTED_API_KEY", "not-needed"),
+            temperature=0.6,
+            top_p=0.95,
+            dont_force_structured_output=True,
+        )
+    raise ValueError("LLM_PROVIDER must be ollama, self_hosted, or openai")
 
 
 def build_task(url: str, profile: dict, resume_path: Path) -> str:

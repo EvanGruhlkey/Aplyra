@@ -20,3 +20,19 @@ def test_ollama_uses_non_thinking_cpu_mode(monkeypatch):
     assert llm.model == "qwen3:4b"
     assert llm.ollama_options["think"] is False
     assert llm.ollama_options["num_gpu"] == 0
+
+
+def test_self_hosted_browser_model_uses_configured_endpoint(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "self_hosted")
+    monkeypatch.setenv("SELF_HOSTED_BASE_URL", "http://model:8001/v1")
+    llm = make_llm()
+    assert llm.model == "browser-use/bu-30b-a3b-preview"
+    assert str(llm.base_url) == "http://model:8001/v1"
+    assert llm.dont_force_structured_output is True
+
+
+def test_self_hosted_model_requires_endpoint(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "self_hosted")
+    monkeypatch.delenv("SELF_HOSTED_BASE_URL", raising=False)
+    with pytest.raises(ValueError, match="SELF_HOSTED_BASE_URL"):
+        make_llm()
