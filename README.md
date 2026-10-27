@@ -4,7 +4,7 @@ Your personal AI job-search agent
 
 Stop applying. Start interviewing.
 
-Small proof of concept using the open-source [Browser Use](https://github.com/browser-use/browser-use) agent. It starts a visible Chromium browser, reads a job application, fills supported fields from a local profile, uploads a PDF resume, and checks for confirmation. The included employer form runs only on your computer.
+Small proof of concept using the open-source [Browser Use](https://github.com/browser-use/browser-use) agent. It starts Chromium, reads a job application, fills supported fields from a profile, uploads a PDF resume, and checks for confirmation. The included employer form can run on your computer or inside the remote worker.
 
 ## Setup
 
@@ -95,4 +95,6 @@ curl -sS http://127.0.0.1:8080/applications/RUN_ID \
 
 The remote browser runs headlessly; screenshots and conversation logs are saved under `/opt/aplyra-data/runs/RUN_ID/`. Ollama with Qwen3-4B is slow on a two CPU core instance. Stop the EC2 instance after testing if it does not need to stay online.
 
-The remote worker is the first infrastructure step. Job discovery, deduplication, Gmail monitoring, and the CLI question inbox are not implemented yet.
+The intended setup is one small VM per user, with a job finder, application agent, and Gmail monitor running locally on that VM. Each agent can queue questions for the user. This prototype currently runs only the application agent; job discovery, deduplication, Gmail monitoring, and the CLI question inbox are not implemented yet.
+
+The AWS CPU test has not yet produced a confirmed mock application. The saved Browser Use runs and screenshots show the current local model navigating the form but failing to complete it. Treat remote submission as unverified until a run returns `confirmed` and the mock employer records an application ID.
