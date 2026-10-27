@@ -60,6 +60,7 @@ def build_task(url: str, profile: dict, resume_path: Path) -> str:
         f"Open {url} and complete the job application. Use the visible page and your built-in browser actions to discover fields and navigate; do not assume selectors. "
         f"Candidate profile (JSON): {json.dumps(profile, ensure_ascii=False)}. "
         f"Upload the PDF at {resume_path.resolve()} using the upload_file action. "
+        "For every click, input, and upload, use the bracketed element index shown in the latest browser state. Never use index 0 unless it is explicitly shown there. If an index fails, inspect the page again before retrying. "
         "Use only facts in the profile. For an unfamiliar question or missing answer, stop and explain what information is needed. "
         "If you encounter CAPTCHA, MFA, a site error, or an inaccessible field, stop and report it. Do not guess or bypass it. "
         "Submit the completed application once. Then inspect the confirmation page and report the application ID or confirmation text. "
@@ -91,7 +92,7 @@ async def apply(url: str, profile: dict, resume_path: Path, output_dir: Path, he
         ),
         available_file_paths=[str(resume_path.resolve())],
         save_conversation_path=output_dir / "conversation",
-        max_failures=2,
+        max_failures=4,
         llm_timeout=240,
         step_timeout=300,
     )
