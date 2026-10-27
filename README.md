@@ -20,6 +20,15 @@ Copy-Item profile.example.json profile.json
 
 Install [Ollama](https://ollama.com/download), start its service, and run `ollama pull qwen3:8b`. You can instead select an API model in `.env` with `LLM_PROVIDER=openai`, `OPENAI_MODEL`, and `OPENAI_API_KEY`.
 
+For remote compute with open weights, serve [Browser Use's browser model](https://huggingface.co/browser-use/bu-30b-a3b-preview) on a GPU using vLLM. Its server exposes an OpenAI-compatible endpoint; the agent and Chromium can run on a separate small VM. Keep the endpoint on a private network or protect it with a token. Set `LLM_PROVIDER=self_hosted`, `SELF_HOSTED_BASE_URL`, and optionally `SELF_HOSTED_API_KEY` in the worker environment. The default self-hosted model is `browser-use/bu-30b-a3b-preview`. There is no per-token model API charge, but GPU compute and storage still cost money.
+
+```bash
+vllm serve browser-use/bu-30b-a3b-preview \
+  --max-model-len 65536 --host 127.0.0.1 --port 8001
+```
+
+The command above binds to loopback for a model server on the same VM. For a separate GPU VM, connect the two VMs through a private network and set `SELF_HOSTED_BASE_URL` to that private address. The AWS Free plan CPU worker used for the first test cannot run this model at practical speed.
+
 Fill `profile.json` with your own contact details, education, work experience, and truthful saved answers. Put your actual PDF at `resume.pdf`. These files and `.env` are ignored by Git because they contain personal information. The included profile has blank fields and intentionally fails validation until completed.
 
 ## Run the local test application
