@@ -84,7 +84,10 @@ async def apply(url: str, profile: dict, resume_path: Path, output_dir: Path, he
         task=build_task(url, profile, resume_path),
         llm=make_llm(),
         browser=browser,
-        use_vision=os.getenv("LLM_PROVIDER", "ollama").lower() != "ollama",
+        use_vision=(
+            os.getenv("LLM_PROVIDER", "ollama").lower() != "ollama"
+            or os.getenv("OLLAMA_USE_VISION", "false").lower() in {"1", "true", "yes"}
+        ),
         available_file_paths=[str(resume_path.resolve())],
         save_conversation_path=output_dir / "conversation",
         max_failures=2,
