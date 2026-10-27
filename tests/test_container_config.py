@@ -9,7 +9,7 @@ def test_private_container_contract():
     assert "COPY profile.json" not in dockerfile
     assert "COPY resume.pdf" not in dockerfile
     assert "VOLUME /workspace" in dockerfile
-    assert 'host="::"' in entrypoint
+    assert 'host="0.0.0.0"' in entrypoint
     assert '"127.0.0.1", 8000' in entrypoint
     assert "APLYRA_CONTROL_TOKEN" in entrypoint
     assert "ollama serve" in entrypoint

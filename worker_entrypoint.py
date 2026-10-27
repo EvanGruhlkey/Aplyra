@@ -36,7 +36,7 @@ def main():
     ApplicationHandler.output_dir = workspace / "mock_submissions"
     mock = ThreadingHTTPServer(("127.0.0.1", 8000), ApplicationHandler)
     threading.Thread(target=mock.serve_forever, daemon=True).start()
-    uvicorn.run(create_app(workspace, token), host="::", port=8080)
+    uvicorn.run(create_app(workspace, token), host="0.0.0.0", port=8080)
 
 
 if __name__ == "__main__":
